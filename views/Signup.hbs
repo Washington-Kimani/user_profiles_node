@@ -10,7 +10,10 @@
    <div class="signin"> 
         <div class="content"> 
             <h2>Sign In</h2> 
-            <form method="POST" action="/signup" class="form"> 
+            <form method="POST" action="/signup" class="form" enctype="multipart/form-data"> 
+                <div class="inputBox"> 
+                    <input type="file" name="image" > <i>Profile Pic</i> 
+                </div> 
                 <div class="inputBox"> 
                     <input type="text" name="username" required> <i>Username</i> 
                 </div> 

@@ -6,7 +6,9 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 const http = require('http');
+const multer = require('multer');
 const bcrypt =  require('bcrypt');
+const uuid = require('uuid');
 
 //User Model required
 const User = require('./models/user');
@@ -15,59 +17,76 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.Server(app);
 
-//MIDDLEWARE
+//MIDDEWARES
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(methodOverride('_method'));
-
-//Passport Setup
-app.use(session({ secret: 'ae830b2c858d59e13a2f63ff39ddbe96885f550d', resave: true, saveUninitialized: true }));
-app.use(passport.initialize());
-app.use(passport.session());
-
-//View Engine
+app.use(methodOverride('_method'))
+//view engine
 app.set('view engine', 'hbs');
+//session
+app.use(session({
+    secret: uuid.v4(),
+    resave: true,
+    saveUninitialized: true
+}));
 
-//Connecting to the database
+//Connect To Database
 mongoose.connect(process.env.dbUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
-    console.log(`MongoDB Connected...`)
-}).catch((err) => {
-    console.log(err);
-});
+    console.log('Connected to database...');
+}).catch((error) => {
+    console.log(error);
+})
 
 
-//Serialize and Deserialize Users
-passport.serializeUser(function (user, done) {
+//passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+passport.use(new localStrategy(
+    {
+        usernameField: 'username',
+        passwordField: 'password'
+    },
+    async (username, password, done) => {
+        try {
+            const user = await User.findOne({ username });
+
+            if (!user) {
+                return done(null, false, { message: 'Invalid username or password' });
+            }
+
+            const valid = await bcrypt.compare(password, user.password);
+
+            if (!valid) {
+                return done(null, false, { message: 'Invalid username or password' });
+            }
+
+            // If the user is found and the password is correct, invoke the done function with the user object
+            return done(null, user);
+        } catch (error) {
+            return done(error); // Handle the error appropriately
+        }
+    }
+));
+
+passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
-passport.deserializeUser(function (id, done) {
-    User.findById(id, function (err, user) {
-        done(err, user);
-    });
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (error) {
+        done(error); // Handle the error appropriately
+    }
 });
 
-//My Middleware functions
-passport.use(new localStrategy(function (username, password, done) {
-    User.findOne({ username: req.body.username }, function (err, user) {
-        if (err) return done(err);
-        if (!user) return done(null, false, { message: 'Incorrect username.' });
-
-        bcrypt.compare(password, req.body.password, function (err, res) {
-            if (err) return done(err);
-            if (res === false) return done(null, false, { message: 'Incorrect password.' });
-
-            return done(null, user);
-        });
-    });
-}));
-
-
-//MY MIDDLEWARES
 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) return next();
@@ -79,31 +98,31 @@ function isLoggedOut(req, res, next) {
     res.redirect('/');
 }
 
-function checkEmail (req, res, next){
-   let user = User.findOne({email: req.body.email});
-   if(!user){
-    next();
-   }
+//Setting Up Multer
+const storage = multer.memoryStorage();
+const multerUploads = multer({ storage }).single('image');
 
-   res.render('Error',{title: "Error Page",error: "The email is already in use!!!", email: req.body.email})
-}
-
-// ROUTES
 app.get('/', isLoggedIn, (req, res) => {
-    res.render("Home", { title: "Home" });
+    const imageBuffer = req.user.image.data.toString('base64');
+    const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}`;
+    res.render('Home', { title: 'Welcome to Admin Dashboard', user: req.user, image: imageBase64 });
 });
 
-app.get('/about', (req, res) => {
-    res.render("Home", { title: "About" });
+app.get('/users', isLoggedIn, async (req, res)=>{
+    const users = await User.find();
+    res.render('Users', {title: 'All Users Page', users});
+});
+
+app.get('/signup', (req, res) => {
+    res.render('Signup', { title: 'Sign Up Page' });
 });
 
 app.get('/login', isLoggedOut, (req, res) => {
     const response = {
-        title: "Login",
+        title: 'Login',
         error: req.query.error
     }
-
-    res.render('login', response);
+    res.render('Login', response);
 });
 
 app.post('/login', passport.authenticate('local', {
@@ -111,29 +130,54 @@ app.post('/login', passport.authenticate('local', {
     failureRedirect: '/login?error=true'
 }));
 
-app.get('/logout', (req, res) => {
-    req.logout();
-    res.redirect('/');
-});
 
-app.get('/signup', (req, res) => {
-    res.render('Signup');
-});
-
-app.post('/signup', checkEmail, async (req,res)=>{
-    const {username,email, password} = req.body;
-    const hash = await bcrypt.hash(password, 10);
-
-    const user = new User({
-        username,
-        email,
-        password: hash
+app.delete('/logout', (req, res) => {
+    req.logout(function (err) {
+        if (err) {
+            // Handle any errors that occur during logout
+            res.send(err)
+        }
+        // Redirect or perform any other necessary actions after successful logout
+        res.redirect('/login')
     });
 
-    await user.save().then(()=>{
-        res.redirect('/Login');
+});
+
+
+// Sign up a new user;
+app.post('/signup', multerUploads, async (req, res) => {
+    let { username, email, password } = req.body;
+    const exists = await User.exists({ email: email });
+
+    if (exists) {
+        res.render('Error',{email: req.body.email});
+        return;
+    };
+
+    // console.log(req.body);
+    // console.log(req.file);
+
+    bcrypt.genSalt(10, function (err, salt) {
+        if (err) return next(err);
+        bcrypt.hash(password, salt, function (err, hash) {
+            if (err) return next(err);
+
+            const newUser = new User({
+                name: username,
+                image: {
+                    data: req.file.buffer,
+                    contentType: req.file.mimetype
+                },
+                username: username,
+                email: email,
+                password: hash
+            });
+
+            newUser.save();
+
+            res.redirect('/');
+        });
     });
-    
 });
 
 

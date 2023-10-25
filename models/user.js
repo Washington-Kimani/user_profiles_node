@@ -1,9 +1,16 @@
-const mongoose  = require('mongoose');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 
 
 const userSchema = new mongoose.Schema({
+    name: {
+        type: String
+    },
+    image: {
+        data: Buffer,
+        contentType: String
+    },
     username: {
         type: String,
         rquired: true
@@ -16,6 +23,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     }
-}, {timestamps: true});
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);
