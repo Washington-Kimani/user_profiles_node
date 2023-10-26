@@ -1,7 +1,7 @@
 .home {
   position: absolute;
   width: 60%;
-  height: fit-content;
+  height: 500px;
   background: #222;
   z-index: 1000;
   display: grid;
@@ -12,10 +12,16 @@
   box-shadow: 0 15px 35px rgba(0, 0, 0, 9);
 }
 
-.home img {
-  width: 100%;
-  aspect-ratio: 1/1;
+.home .profile__pic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home .profile__pic img {
+  width: 300px;
   display: block;
+  border-radius: .4rem;
 }
 
 .home .user__info {
@@ -23,16 +29,16 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  gap: 1.2rem;
+  color: #fff;
 }
 
 .logout {
   padding: 10px;
-  margin-top: 30px;
   background: #0f0;
   color: #000;
   font-weight: 600;
   font-size: 1.35em;
-  letter-spacing: 0.05em;
   cursor: pointer;
   border-radius: 0.4rem;
 }

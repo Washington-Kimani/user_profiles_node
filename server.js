@@ -105,12 +105,20 @@ const multerUploads = multer({ storage }).single('image');
 app.get('/', isLoggedIn, (req, res) => {
     const imageBuffer = req.user.image.data.toString('base64');
     const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}`;
-    res.render('Home', { title: 'Welcome to Admin Dashboard', user: req.user, image: imageBase64 });
+    const name = req.user.username.split(' ')[0]
+    res.render('Home', { title: `${name} Profile Page`, user: req.user, image: imageBase64 });
 });
 
 app.get('/users', isLoggedIn, async (req, res)=>{
     const users = await User.find();
-    res.render('Users', {title: 'All Users Page', users});
+    const data = {
+        users: users.map(user => ({
+            name: user.username,
+            email: user.email,
+            image: `data:${user.image.contentType};base64,${user.image.data.toString('base64')}`,
+        })),
+    };
+    res.render('Users', {title: 'All Users Page', data});
 });
 
 app.get('/signup', (req, res) => {
