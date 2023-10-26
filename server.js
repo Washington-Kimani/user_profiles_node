@@ -106,13 +106,14 @@ app.get('/', isLoggedIn, (req, res) => {
     const imageBuffer = req.user.image.data.toString('base64');
     const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}`;
     const name = req.user.username.split(' ')[0]
-    res.render('Home', { title: `${name} Profile Page`, user: req.user, image: imageBase64 });
+    res.render('Home', { title: `${name} Home Page`, user: req.user, image: imageBase64 });
 });
 
 app.get('/users', isLoggedIn, async (req, res)=>{
     const users = await User.find();
     const data = {
         users: users.map(user => ({
+            id: user._id,
             name: user.username,
             email: user.email,
             image: `data:${user.image.contentType};base64,${user.image.data.toString('base64')}`,
@@ -120,6 +121,16 @@ app.get('/users', isLoggedIn, async (req, res)=>{
     };
     res.render('Users', {title: 'All Users Page', data});
 });
+
+app.get('/user/:id', isLoggedIn, async(req, res)=>{
+    User.findOne({
+        _id: req.params.id
+    }).then(data => {
+        const imageBuffer = data.image.data.toString('base64');
+        const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}`;
+        res.render('User', { data: data, title: data.username, image: imageBase64});
+    }).catch(err => console.log(err));
+})
 
 app.get('/signup', (req, res) => {
     res.render('Signup', { title: 'Sign Up Page' });

@@ -12,11 +12,11 @@
         <div class="container">
           <ul >
             {{#each data.users}}
-              <li class="table-row">
+              <a href="/user/{{this.id}}"><li class="table-row">
                 <div data-label="Profile"><img src={{{image}}} alt="User Image" style="width: 50px;" /></div>
                 <div data-label="User Name">{{this.name}}</div>
                 <div data-label="E-mail">{{this.email}}</div>
-              </li>
+              </li></a>
             {{/each}}
           </ul>
         </div>
@@ -24,4 +24,5 @@
     </section>
     <!-- partial -->
   </body>
+  <script src="/js/script.js"></script>
 </html>

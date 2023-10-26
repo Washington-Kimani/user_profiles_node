@@ -1,3 +1,7 @@
+a{
+  color: #fff;
+}
+
 .users {
   position: absolute;
   width: 70%;
@@ -21,7 +25,7 @@
   gap: 1rem;
 }
 .container ul li{
-  width: 100%;
+  width: 95%;
   height: fit-content;
   display: flex;
   align-items: center;
@@ -29,4 +33,5 @@
   gap: 1rem;
   border: 1px solid #0f0;
   padding: 10px;
+  cursor: pointer;
 }
