@@ -103,8 +103,8 @@ const storage = multer.memoryStorage();
 const multerUploads = multer({ storage }).single('image');
 
 app.get('/', isLoggedIn, (req, res) => {
-    const imageBuffer = req.user.image.data.toString('base64');
-    const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}`;
+    const imageBuffer = req.user?.image?.data?.toString('base64');
+    const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}` || './avatar.png';
     const name = req.user.username.split(' ')[0]
     res.render('Home', { title: `${name} Home Page`, user: req.user, image: imageBase64 });
 });
@@ -116,7 +116,7 @@ app.get('/users', isLoggedIn, async (req, res)=>{
             id: user._id,
             name: user.username,
             email: user.email,
-            image: `data:${user.image.contentType};base64,${user.image.data.toString('base64')}`,
+            image: `data:${user?.image?.contentType};base64,${user?.image?.data?.toString('base64')}`,
         })),
     };
     res.render('Users', {title: 'All Users Page', data});
@@ -126,8 +126,8 @@ app.get('/user/:id', isLoggedIn, async(req, res)=>{
     User.findOne({
         _id: req.params.id
     }).then(data => {
-        const imageBuffer = data.image.data.toString('base64');
-        const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}`;
+        const imageBuffer = data?.image?.data?.toString('base64');
+        const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}` || `/images/avatar.png`;
         res.render('User', { data: data, title: data.username, image: imageBase64});
     }).catch(err => console.log(err));
 })
@@ -173,9 +173,6 @@ app.post('/signup', multerUploads, async (req, res) => {
         return;
     };
 
-    // console.log(req.body);
-    // console.log(req.file);
-
     bcrypt.genSalt(10, function (err, salt) {
         if (err) return next(err);
         bcrypt.hash(password, salt, function (err, hash) {
@@ -184,8 +181,8 @@ app.post('/signup', multerUploads, async (req, res) => {
             const newUser = new User({
                 name: username,
                 image: {
-                    data: req.file.buffer,
-                    contentType: req.file.mimetype
+                    data: req.file?.buffer,
+                    contentType: req.file?.mimetype
                 },
                 username: username,
                 email: email,
