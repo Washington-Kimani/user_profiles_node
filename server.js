@@ -21,7 +21,7 @@ const server = http.Server(app);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(methodOverride('_method'))
+app.use(methodOverride('_method'));
 //view engine
 app.set('view engine', 'hbs');
 //session
@@ -39,7 +39,7 @@ mongoose.connect(process.env.dbUrl, {
     console.log('Connected to database...');
 }).catch((error) => {
     console.log(error);
-})
+});
 
 
 //passport
@@ -104,7 +104,7 @@ const multerUploads = multer({ storage }).single('image');
 
 app.get('/', isLoggedIn, (req, res) => {
     const imageBuffer = req.user.image?.data?.toString('base64');
-    const imageBase64 = imageBuffer === undefined ? '/images/avatar.png' : `data:${req.user.image.contentType};base64,${imageBuffer}`;
+    const imageBase64 = imageBuffer === undefined ? '/images/avatar.jpg' : `data:${req.user.image.contentType};base64,${imageBuffer}`;
     const name = req.user.username.split(' ')[0]
     res.render('Home', { title: `${name} Home Page`, user: req.user, image: imageBase64 });
 });
@@ -116,7 +116,7 @@ app.get('/users', isLoggedIn, async (req, res) => {
             id: user._id,
             name: user.username,
             email: user.email,
-            image: user?.image === undefined ? '/images/avatar.png' : `data:${user?.image?.contentType};base64,${user?.image?.data?.toString('base64')}`,
+            image: user?.image?.data?.toString() === undefined ? '/images/avatar.jpg' : `data:${user?.image?.contentType};base64,${user?.image?.data?.toString('base64')}`,
         })),
     };
     res.render('Users', { title: 'All Users Page', data });
@@ -127,7 +127,7 @@ app.get('/user/:id', isLoggedIn, async (req, res) => {
         _id: req.params.id
     }).then(data => {
         const imageBuffer = data?.image?.data?.toString('base64');
-        const imageBase64 = imageBuffer === undefined ? '/images/avatar.png' : `data:${req.user.image.contentType};base64,${imageBuffer}`;
+        const imageBase64 = imageBuffer === undefined ? '/images/avatar.jpg' : `data:${req.user.image.contentType};base64,${imageBuffer}`;
         // console.log(imageBase64);
         res.render('User', { data: data, title: data.username, image: imageBase64 });
     }).catch(err => console.log(err));
