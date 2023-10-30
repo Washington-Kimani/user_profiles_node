@@ -7,7 +7,7 @@ const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 const http = require('http');
 const multer = require('multer');
-const bcrypt =  require('bcrypt');
+const bcrypt = require('bcrypt');
 const uuid = require('uuid');
 
 //User Model required
@@ -103,32 +103,33 @@ const storage = multer.memoryStorage();
 const multerUploads = multer({ storage }).single('image');
 
 app.get('/', isLoggedIn, (req, res) => {
-    const imageBuffer = req.user?.image?.data?.toString('base64');
-    const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}` || './avatar.png';
+    const imageBuffer = req.user.image?.data?.toString('base64');
+    const imageBase64 = imageBuffer === undefined ? '/images/avatar.png' : `data:${req.user.image.contentType};base64,${imageBuffer}`;
     const name = req.user.username.split(' ')[0]
     res.render('Home', { title: `${name} Home Page`, user: req.user, image: imageBase64 });
 });
 
-app.get('/users', isLoggedIn, async (req, res)=>{
+app.get('/users', isLoggedIn, async (req, res) => {
     const users = await User.find();
     const data = {
         users: users.map(user => ({
             id: user._id,
             name: user.username,
             email: user.email,
-            image: `data:${user?.image?.contentType};base64,${user?.image?.data?.toString('base64')}`,
+            image: user?.image === undefined ? '/images/avatar.png' : `data:${user?.image?.contentType};base64,${user?.image?.data?.toString('base64')}`,
         })),
     };
-    res.render('Users', {title: 'All Users Page', data});
+    res.render('Users', { title: 'All Users Page', data });
 });
 
-app.get('/user/:id', isLoggedIn, async(req, res)=>{
+app.get('/user/:id', isLoggedIn, async (req, res) => {
     User.findOne({
         _id: req.params.id
     }).then(data => {
         const imageBuffer = data?.image?.data?.toString('base64');
-        const imageBase64 = `data:${req.user.image.contentType};base64,${imageBuffer}` || `/images/avatar.png`;
-        res.render('User', { data: data, title: data.username, image: imageBase64});
+        const imageBase64 = imageBuffer === undefined ? '/images/avatar.png' : `data:${req.user.image.contentType};base64,${imageBuffer}`;
+        // console.log(imageBase64);
+        res.render('User', { data: data, title: data.username, image: imageBase64 });
     }).catch(err => console.log(err));
 })
 
@@ -169,7 +170,7 @@ app.post('/signup', multerUploads, async (req, res) => {
     const exists = await User.exists({ email: email });
 
     if (exists) {
-        res.render('Error',{email: req.body.email});
+        res.render('Error', { email: req.body.email });
         return;
     };
 
