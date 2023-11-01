@@ -21,7 +21,7 @@
 .home .profile__pic img {
   width: 300px;
   display: block;
-  border-radius: .4rem;
+  border-radius: 0.4rem;
 }
 
 .home .user__info {
@@ -43,11 +43,24 @@
   border-radius: 0.4rem;
 }
 
+.user_actions {
+  width: 50%;
+  display: flex;
+  justify-content: space-between;
+}
+
 .links {
   margin-top: 30px;
 }
 
-.links a {
+a {
   color: #fff;
   font-weight: 800;
+  padding: 10px;
+  background: #0f0;
+  color: #000;
+  font-weight: 600;
+  font-size: 1.35em;
+  cursor: pointer;
+  border-radius: 0.4rem;
 }

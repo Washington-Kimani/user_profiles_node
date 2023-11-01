@@ -15,11 +15,15 @@
        <div class="user__info">
           <h2>Welcome to your Profile Page</h2>
           <p>{{user.username}}</p>
-          <form action="/logout?_method=DELETE" method="POST">
-               <button type="submit" class="logout">Logout</button>
-          </form>
+          <p>{{user.email}}</p>
+          <div class="user_actions">
+               <form action="/logout?_method=DELETE" method="POST">
+                    <button type="submit" class="logout">Logout</button>
+               </form>
+               <a href="/user/edit">Edit Profile</a>
+          </div>
           <div class="links">
-               <a href="/users" >Go to all users</a>
+               <a href="/users" >See All Users</a>
           </div>
        </div>
         </div> 
