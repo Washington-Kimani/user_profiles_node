@@ -6,9 +6,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server",
-    "dev": "nodemon server",
-    "sass:compile": "node-sass ./public/styles.scss ./public/styles.css",
-    "sass:watch": "npm run sass:compile -- -w"
+    "dev": "nodemon server"
   },
   "keywords": [],
   "author": "",
